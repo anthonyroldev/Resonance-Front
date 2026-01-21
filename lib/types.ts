@@ -11,6 +11,7 @@ export interface Media {
   itunesUrl: string | null;
   averageRating: number | null;
   ratingCount: number;
+  description: string | null;
   cachedAt: string;
 }
 
