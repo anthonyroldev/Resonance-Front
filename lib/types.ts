@@ -49,8 +49,11 @@ export interface User {
 
 export interface UserLibraryEntry {
   id: string;
-  userId: string;
-  media: Media;
+  mediaId: string;
+  mediaTitle: string;
+  artistName: string;
+  imageUrl: string | null;
+  mediaType: MediaType;
   rating: number | null;
   isFavorite: boolean;
   comment: string | null;

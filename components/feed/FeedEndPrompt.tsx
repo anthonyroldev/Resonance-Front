@@ -12,7 +12,7 @@ export function FeedEndPrompt() {
     <div className="relative w-full h-dvh flex items-center justify-center overflow-hidden bg-black snap-start shrink-0">
       {/* Background gradient */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/80 to-black" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/50 via-black/80 to-black" />
       </div>
 
       {/* Content */}

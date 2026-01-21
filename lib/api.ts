@@ -1,4 +1,4 @@
-import { Media, PaginatedResponse } from "./types";
+import { Media, PaginatedResponse, UserLibraryEntry } from "./types";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
@@ -46,7 +46,7 @@ export async function register(data: any): Promise<RegisterResponse> {
   return response.json();
 }
 
-export async function fetchUserProfile(token: string): Promise<any> {
+export async function fetchUserLibrary(token: string): Promise<UserLibraryEntry[]> {
   const response = await fetch(`${BASE_API_URL}/library`, {
     method: "GET",
     headers: {
@@ -56,7 +56,22 @@ export async function fetchUserProfile(token: string): Promise<any> {
 
   if (!response.ok) {
     const errorData = await response.text();
-    throw new Error(errorData || "Failed to fetch user profile");
+    throw new Error(errorData || "Failed to fetch user library");
+  }
+  return response.json();
+}
+
+export async function fetchUserFavorites(token: string): Promise<UserLibraryEntry[]> {
+  const response = await fetch(`${BASE_API_URL}/library/favorites`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Failed to fetch user favorites");
   }
   return response.json();
 }
@@ -109,7 +124,7 @@ export async function addToFavorites(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ mediaId }),
+    body: JSON.stringify({ mediaId: mediaId }),
   });
 
   if (!response.ok && response.status !== 201) {
@@ -122,7 +137,7 @@ export async function removeFromFavorites(
   token: string,
   mediaId: string
 ): Promise<void> {
-  const response = await fetch(`${BASE_API_URL}/api/library/favorites/${mediaId}`, {
+  const response = await fetch(`${BASE_API_URL}/library/favorites/${mediaId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
