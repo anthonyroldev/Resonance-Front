@@ -6,7 +6,7 @@ const protectedRoutes = ["/library", "/profile"];
 const authRoutes = ["/login", "/register"];
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get("AUTH_TOKEN")?.value;
   const { pathname } = request.nextUrl;
 
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
