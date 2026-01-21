@@ -149,3 +149,28 @@ export async function removeFromFavorites(
     throw new Error(errorData || "Failed to remove from favorites");
   }
 }
+
+export async function addToLibrary(
+  token: string,
+  mediaId: string,
+  mediaType: string,
+  comment?: string
+): Promise<void> {
+  const response = await fetch(`${BASE_API_URL}/library`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ 
+      mediaId: mediaId,
+      mediaType: mediaType,
+      comment: comment || undefined
+    }),
+  });
+
+  if (!response.ok && response.status !== 201) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Failed to add to library");
+  }
+}
