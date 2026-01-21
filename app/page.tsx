@@ -19,8 +19,8 @@ export default function HomeLayout() {
             label="Discover"
             active
           />
-          <NavItem icon={<Search className="w-5 h-5" />} label="Search" />
-          <NavItem icon={<Library className="w-5 h-5" />} label="Library" />
+          <NavItem icon={<Search className="w-5 h-5" />} label="Search" href="/search"/>
+          <NavItem icon={<Library className="w-5 h-5" />} label="Library" href="/library"/>
         </nav>
         <div className="pt-6 border-t border-white/10 space-y-2">
           <NavItem icon={<Settings className="w-5 h-5" />} label="Settings" />
@@ -55,15 +55,17 @@ export default function HomeLayout() {
 function NavItem({
   icon,
   label,
+  href,
   active = false,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  href?: string;
 }) {
   return (
     <Link
-      href="#"
+      href={href || "#"}
       className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${active ? "bg-primary/20 text-primary font-semibold" : "text-white/60 hover:text-white hover:bg-white/5"}`}
     >
       {icon}

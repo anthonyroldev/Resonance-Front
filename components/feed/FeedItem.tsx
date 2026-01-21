@@ -4,9 +4,14 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { Marquee } from "@/components/ui/marquee";
+import { addToFavorites } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Media } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useMutation } from "@tanstack/react-query";
 import { ExternalLink, Heart, Plus } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 interface FeedItemProps {
   item: Media;
@@ -15,6 +20,21 @@ interface FeedItemProps {
 
 export function FeedItem({ item, isActive }: FeedItemProps) {
   const imageUrl = item.imageUrl || "/placeholder.png";
+  const { token } = useAuth();
+  const [isLiked, setIsLiked] = useState(false);
+
+  const likeMutation = useMutation({
+    mutationFn: () => addToFavorites(token!, item.id),
+    onSuccess: () => {
+      setIsLiked(true);
+    },
+  });
+
+  const handleLike = () => {
+    if (!isLiked && !likeMutation.isPending) {
+      likeMutation.mutate();
+    }
+  };
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black snap-start shrink-0">
@@ -76,29 +96,41 @@ export function FeedItem({ item, isActive }: FeedItemProps) {
             </p>
           </div>
 
-          <AuthGate>
-            {(openAuth) => (
-              <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-6">
+            <AuthGate onAuthenticated={handleLike}>
+              {(handleAction) => (
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
-                  onClick={openAuth}
+                  className={cn(
+                    "w-12 h-12 rounded-full backdrop-blur-sm transition-colors",
+                    isLiked
+                      ? "bg-red-500/20 text-red-500 hover:bg-red-500/30 hover:text-red-500"
+                      : "bg-white/10 hover:bg-white/20 text-white"
+                  )}
+                  onClick={handleAction}
+                  disabled={likeMutation.isPending}
                 >
-                  <Heart className="w-6 h-6" />
+                  <Heart
+                    className={cn("w-6 h-6", isLiked && "fill-current")}
+                  />
                 </Button>
+              )}
+            </AuthGate>
 
+            <AuthGate>
+              {(handleAction) => (
                 <Button
                   size="icon"
                   variant="ghost"
                   className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
-                  onClick={openAuth}
+                  onClick={handleAction}
                 >
                   <Plus className="w-6 h-6" />
                 </Button>
-              </div>
-            )}
-          </AuthGate>
+              )}
+            </AuthGate>
+          </div>
         </div>
       </div>
     </div>

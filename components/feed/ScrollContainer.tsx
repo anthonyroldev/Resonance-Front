@@ -128,7 +128,7 @@ export function ScrollContainer() {
       >
         {feed.map((item, index) => (
           <div
-            key={item.id}
+            key={`${item.type}-${item.id}`}
             data-index={index}
             className="feed-item h-dvh w-full snap-start"
           >

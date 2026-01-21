@@ -98,3 +98,39 @@ export async function getDiscoveryFeed(
   }
   return response.json();
 }
+
+export async function addToFavorites(
+  token: string,
+  mediaId: string
+): Promise<void> {
+  const response = await fetch(`${BASE_API_URL}/library/favorites`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ mediaId }),
+  });
+
+  if (!response.ok && response.status !== 201) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Failed to add to favorites");
+  }
+}
+
+export async function removeFromFavorites(
+  token: string,
+  mediaId: string
+): Promise<void> {
+  const response = await fetch(`${BASE_API_URL}/api/library/favorites/${mediaId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Failed to remove from favorites");
+  }
+}

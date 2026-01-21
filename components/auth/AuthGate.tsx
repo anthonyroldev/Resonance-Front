@@ -8,26 +8,24 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface AuthGateProps {
-  children: (openAuth: () => void) => React.ReactNode;
+  children: (handleAction: () => void) => React.ReactNode;
+  onAuthenticated?: () => void;
 }
 
 /**
  * AuthGate is a wrapper component that protects interactions requiring authentication.
+ * If authenticated, calls onAuthenticated callback. Otherwise, shows login dialog.
  */
-export function AuthGate({ children }: AuthGateProps) {
+export function AuthGate({ children, onAuthenticated }: AuthGateProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  const handleInteraction = () => {
+  const handleAction = () => {
     if (!isAuthenticated) {
       setIsOpen(true);
     } else {
-      // If logged in, we would typically execute the passed action.
-      // NOTE: In this specific implementation pattern, the child component uses this 
-      // function as its primary onClick. If we wanted to support the actual action,
-      // we might accept an `onAction` prop and call it here.
-      console.log("User is authenticated, allowed to proceed.");
+      onAuthenticated?.();
     }
   };
 
@@ -37,7 +35,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
   return (
     <>
-      {children(handleInteraction)}
+      {children(handleAction)}
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md">
