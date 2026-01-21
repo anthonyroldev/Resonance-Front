@@ -6,6 +6,7 @@ export interface Media {
   title: string;
   artistName: string;
   imageUrl: string | null;
+  previewUrl: string | null;
   releaseDate: string | null;
   type: MediaType;
   itunesUrl: string | null;
