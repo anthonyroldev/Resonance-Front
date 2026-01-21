@@ -54,6 +54,7 @@ export interface UserLibraryEntry {
   mediaTitle: string;
   artistName: string;
   imageUrl: string | null;
+  previewUrl: string | null;
   mediaType: MediaType;
   rating: number | null;
   isFavorite: boolean;

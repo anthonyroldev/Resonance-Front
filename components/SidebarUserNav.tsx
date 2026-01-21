@@ -32,10 +32,10 @@ export function SidebarUserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-3 p-3 mt-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer w-full">
+        <button className="flex items-center gap-3 p-3 mt-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer w-full">
             <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-500" />
             <div className="text-sm font-medium">Guest User</div>
-        </div>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-black/90 border-white/10 text-white" align="start" side="right" sideOffset={10}>
         <DropdownMenuLabel className="font-normal">

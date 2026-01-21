@@ -6,9 +6,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { fetchUserFavorites, fetchUserLibrary } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { UserLibraryEntry } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Disc, Music2, User as UserIcon } from "lucide-react";
+import { Disc, Music2, Pause, Play, User as UserIcon } from "lucide-react";
 import Image from "next/image";
+import { useRef, useState } from "react";
 
 export function LibraryContent() {
   const { token, isAuthenticated } = useAuth();
@@ -100,6 +102,7 @@ function FavoriteCard({ entry }: { entry: UserLibraryEntry }) {
           src={entry.imageUrl}
           alt={entry.mediaTitle}
           fill
+          sizes="192px"
           className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
         />
       ) : (
@@ -114,32 +117,111 @@ function FavoriteCard({ entry }: { entry: UserLibraryEntry }) {
 }
 
 function LibraryCard({ entry }: { entry: UserLibraryEntry }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   let Icon = Music2;
   if (entry.mediaType === "ALBUM") Icon = Disc;
   if (entry.mediaType === "ARTIST") Icon = UserIcon;
 
+  const togglePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!entry.previewUrl || !audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.volume = 0.25;
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.error("Playback failed", err);
+          setIsPlaying(false);
+        });
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      const current = audioRef.current.currentTime;
+      const duration = audioRef.current.duration || 30;
+      setProgress((current / duration) * 100);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+    if (audioRef.current) audioRef.current.currentTime = 0;
+  };
+
   return (
-    <BentoCard
-      name={entry.mediaTitle}
-      className={
-        entry.mediaType === "ARTIST" ? "col-span-3 lg:col-span-1" : "col-span-3 lg:col-span-1"
-      }
-      background={
-        entry.imageUrl ? (
-          <Image
-            src={entry.imageUrl}
-            alt={entry.mediaTitle}
-            fill
-            className="object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-30"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 to-purple-500/10" />
-        )
-      }
-      Icon={Icon}
-      description={entry.artistName}
-      href="#"
-      cta="View Details"
-    />
+    <div className="relative">
+      {entry.previewUrl && (
+        <audio
+          ref={audioRef}
+          src={entry.previewUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={handleEnded}
+        />
+      )}
+      <BentoCard
+        name={entry.mediaTitle}
+        className={
+          entry.mediaType === "ARTIST" ? "col-span-3 lg:col-span-1" : "col-span-3 lg:col-span-1"
+        }
+        background={
+          <>
+            {entry.imageUrl ? (
+              <Image
+                src={entry.imageUrl}
+                alt={entry.mediaTitle}
+                fill
+                className="object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-30"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 to-purple-500/10" />
+            )}
+            
+            {/* Play/Pause Overlay */}
+            {entry.previewUrl && (
+              <div
+                className={cn(
+                  "absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity duration-300 cursor-pointer z-10",
+                  isPlaying ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                )}
+                onClick={togglePlay}
+              >
+                <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm hover:scale-110 transition-transform">
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 text-white fill-current" />
+                  ) : (
+                    <Play className="w-8 h-8 text-white fill-current ml-1" />
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Progress Bar */}
+            {entry.previewUrl && (
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 z-20">
+                <div
+                  className="h-full bg-white transition-all duration-100 ease-linear shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+          </>
+        }
+        Icon={Icon}
+        description={entry.artistName}
+        href="#"
+        cta="View Details"
+      />
+    </div>
   );
 }
