@@ -1,4 +1,4 @@
-import { Media } from "./types";
+import { Media, PaginatedResponse } from "./types";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
@@ -61,22 +61,35 @@ export async function fetchUserProfile(token: string): Promise<any> {
   return response.json();
 }
 
-export async function getDiscoveryFeed(token: string): Promise<Media[]> {
-  if (!token){
-      const response = await fetch(`${BASE_API_URL}/public/feed`, {
-        method: "GET",
-      });
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || "Failed to fetch discovery feed");
-      }
-      return response.json();
+export async function getDiscoveryFeed(
+  token: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedResponse<Media>> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  const url = `${BASE_API_URL}/public/feed?${params}`;
+
+  if (!token || token === "") {
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(errorData || "Failed to fetch discovery feed");
+    }
+    return response.json();
   }
-  const response = await fetch(`${BASE_API_URL}/public/feed`, {
+
+  const response = await fetch(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    credentials: "include",
   });
 
   if (!response.ok) {
