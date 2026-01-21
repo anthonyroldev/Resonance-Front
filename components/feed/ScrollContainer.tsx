@@ -2,16 +2,15 @@
 
 import { AuthPromptDialog } from "@/components/auth/AuthPromptDialog";
 import { getDiscoveryFeed } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Media } from "@/lib/types";
-import { getAuthToken } from "@/lib/utils";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "../ui/spinner";
 import { FeedEndPrompt } from "./FeedEndPrompt";
 import { FeedItem } from "./FeedItem";
 
-const GUEST_AUTH_PROMPT_INDEX = 3; // Show prompt after viewing 3 items (when scrolling to 4th)
-const GUEST_MAX_INDEX = 4; // Block at 5th item (index 4)
+const GUEST_AUTH_PROMPT_INDEX = 3;
 const PAGE_SIZE = 10;
 
 export function ScrollContainer() {
@@ -20,8 +19,7 @@ export function ScrollContainer() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const hasSeenPromptRef = useRef(false);
 
-  const token = getAuthToken() || "";
-  const isAuthenticated = !!token;
+  const { token, isAuthenticated } = useAuth();
 
   const {
     data,
@@ -33,27 +31,21 @@ export function ScrollContainer() {
   } = useInfiniteQuery({
     queryKey: ["discoveryFeed", token],
     queryFn: ({ pageParam = 0 }) =>
-      getDiscoveryFeed(token, pageParam, PAGE_SIZE),
+      getDiscoveryFeed(token ?? "", pageParam, PAGE_SIZE),
     getNextPageParam: (lastPage) =>
       lastPage.last ? undefined : lastPage.page + 1,
     initialPageParam: 0,
   });
 
-  // Flatten paginated data into a single array
   const feed: Media[] = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.content);
   }, [data]);
 
-  // Check if we've reached the end of content for guests
-  const isGuestAtEnd = !isAuthenticated && activeIndex >= GUEST_MAX_INDEX;
-
-  // Handle active index change - check if auth prompt should show
   const handleActiveIndexChange = useCallback(
     (index: number) => {
       setActiveIndex(index);
 
-      // Show auth prompt for guests after viewing 3 items
       if (
         !isAuthenticated &&
         index >= GUEST_AUTH_PROMPT_INDEX &&
@@ -85,7 +77,6 @@ export function ScrollContainer() {
     isAuthenticated,
   ]);
 
-  // Intersection observer to track active item
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -112,24 +103,6 @@ export function ScrollContainer() {
 
     return () => observer.disconnect();
   }, [feed, handleActiveIndexChange]);
-
-  // Prevent scrolling past the limit for guests
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || isAuthenticated) return;
-
-    const handleScroll = () => {
-      if (isGuestAtEnd) {
-        const maxScrollTop = GUEST_MAX_INDEX * window.innerHeight;
-        if (container.scrollTop > maxScrollTop) {
-          container.scrollTop = maxScrollTop;
-        }
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [isAuthenticated, isGuestAtEnd]);
 
   if (isLoading) {
     return (

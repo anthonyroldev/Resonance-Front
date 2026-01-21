@@ -5,7 +5,7 @@ import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { Marquee } from "@/components/ui/marquee";
 import { Media } from "@/lib/types";
-import { Apple, ExternalLink, Heart, Plus } from "lucide-react";
+import { ExternalLink, Heart, Plus } from "lucide-react";
 import Image from "next/image";
 
 interface FeedItemProps {
@@ -53,7 +53,7 @@ export function FeedItem({ item, isActive }: FeedItemProps) {
               onClick={() => window.open(item.itunesUrl!, "_blank")}
             >
               <ExternalLink className="w-4 h-4" />
-              <Apple className="w-4 h-4" /> Ecouter sur Apple Music
+              Ecouter sur Apple Music
             </Button>
           </BlurFade>
         )}

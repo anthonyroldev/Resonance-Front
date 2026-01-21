@@ -11,16 +11,16 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-  FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { register } from "@/lib/api";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function RegisterForm({
   className,
@@ -42,10 +42,7 @@ export function RegisterForm({
 
     try {
       await register({ email, username, password });
-      // After successful registration, we can redirect to login or automatically login
-      // Redirecting to login for now as per common flow, or if API returns token we could login directly.
-      // Assuming register just creates account:
-      router.push("/login");
+      router.push("/library");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -59,7 +56,7 @@ export function RegisterForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="bg-muted">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create an account</CardTitle>
           <CardDescription>

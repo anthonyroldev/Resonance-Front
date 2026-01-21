@@ -2,26 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getAuthToken } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 import { LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSyncExternalStore, useState } from "react";
+import { useState } from "react";
 
 interface AuthGateProps {
   children: (openAuth: () => void) => React.ReactNode;
-}
-
-// Subscribe to auth token changes (noop since we check on interaction)
-function subscribe() {
-  return () => {};
-}
-
-function getSnapshot() {
-  return getAuthToken();
-}
-
-function getServerSnapshot() {
-  return null;
 }
 
 /**
@@ -30,8 +17,7 @@ function getServerSnapshot() {
 export function AuthGate({ children }: AuthGateProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const token = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const isAuthenticated = !!token;
+  const { isAuthenticated } = useAuth();
 
   const handleInteraction = () => {
     if (!isAuthenticated) {
