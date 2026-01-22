@@ -86,6 +86,11 @@ export interface PaginatedResponse<T> {
   first: boolean;
 }
 
+export interface UserResponse{
+  email: string;
+  username: string;
+}
+
 export function isAlbum(media: Media): media is Album {
   return media.type === "ALBUM";
 }

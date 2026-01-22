@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Media } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Spinner } from "../ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FeedEndPrompt } from "./FeedEndPrompt";
 import { FeedItem } from "./FeedItem";
 
@@ -105,11 +105,7 @@ export function ScrollContainer() {
   }, [feed, handleActiveIndexChange]);
 
   if (isLoading) {
-    return (
-      <div className="h-dvh w-full flex items-center justify-center bg-black">
-        <Spinner className="size-8" />
-      </div>
-    );
+    return <FeedItemSkeleton />;
   }
 
   if (error) {
@@ -136,12 +132,8 @@ export function ScrollContainer() {
           </div>
         ))}
 
-        {/* Loading spinner for authenticated users fetching next page */}
-        {isAuthenticated && isFetchingNextPage && (
-          <div className="h-dvh w-full flex items-center justify-center bg-black snap-start">
-            <Spinner className="size-8" />
-          </div>
-        )}
+        {/* Loading skeleton for authenticated users fetching next page */}
+        {isAuthenticated && isFetchingNextPage && <FeedItemSkeleton />}
 
         {/* End prompt for guests */}
         {!isAuthenticated && feed.length > 0 && (
@@ -162,5 +154,34 @@ export function ScrollContainer() {
         description="Connectez-vous pour continuer a decouvrir plus de musique et sauvegarder vos favoris."
       />
     </>
+  );
+}
+
+function FeedItemSkeleton() {
+  return (
+    <div className="h-dvh w-full flex items-center justify-center overflow-hidden bg-black snap-start shrink-0">
+      <div className="relative z-10 w-full max-w-md px-6 flex flex-col items-center gap-8 animate-pulse">
+        {/* Image Skeleton */}
+        <Skeleton className="aspect-square w-full max-w-[320px] rounded-xl bg-neutral-800" />
+
+        {/* Button Skeleton */}
+        <Skeleton className="h-10 w-full max-w-[320px] rounded-md bg-neutral-800" />
+
+        <div className="w-full space-y-6">
+          <div className="text-center space-y-2 flex flex-col items-center">
+            {/* Title Skeleton */}
+            <Skeleton className="h-8 w-3/4 bg-neutral-800" />
+            {/* Artist Skeleton */}
+            <Skeleton className="h-6 w-1/2 bg-neutral-800" />
+          </div>
+
+          <div className="flex items-center justify-center gap-6">
+            {/* Action Buttons Skeleton */}
+            <Skeleton className="w-12 h-12 rounded-full bg-neutral-800" />
+            <Skeleton className="w-12 h-12 rounded-full bg-neutral-800" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

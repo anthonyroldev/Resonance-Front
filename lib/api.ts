@@ -1,4 +1,9 @@
-import { Media, PaginatedResponse, UserLibraryEntry } from "./types";
+import {
+  Media,
+  PaginatedResponse,
+  UserLibraryEntry,
+  UserResponse,
+} from "./types";
 
 const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
 
@@ -46,7 +51,9 @@ export async function register(data: any): Promise<RegisterResponse> {
   return response.json();
 }
 
-export async function fetchUserLibrary(token: string): Promise<UserLibraryEntry[]> {
+export async function fetchUserLibrary(
+  token: string,
+): Promise<UserLibraryEntry[]> {
   const response = await fetch(`${BASE_API_URL}/library`, {
     method: "GET",
     headers: {
@@ -61,7 +68,9 @@ export async function fetchUserLibrary(token: string): Promise<UserLibraryEntry[
   return response.json();
 }
 
-export async function fetchUserFavorites(token: string): Promise<UserLibraryEntry[]> {
+export async function fetchUserFavorites(
+  token: string,
+): Promise<UserLibraryEntry[]> {
   const response = await fetch(`${BASE_API_URL}/library/favorites`, {
     method: "GET",
     headers: {
@@ -79,7 +88,7 @@ export async function fetchUserFavorites(token: string): Promise<UserLibraryEntr
 export async function getDiscoveryFeed(
   token: string,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
 ): Promise<PaginatedResponse<Media>> {
   const params = new URLSearchParams({
     page: String(page),
@@ -116,7 +125,7 @@ export async function getDiscoveryFeed(
 
 export async function addToFavorites(
   token: string,
-  mediaId: string
+  mediaId: string,
 ): Promise<void> {
   const response = await fetch(`${BASE_API_URL}/library/favorites`, {
     method: "POST",
@@ -135,7 +144,7 @@ export async function addToFavorites(
 
 export async function removeFromFavorites(
   token: string,
-  mediaId: string
+  mediaId: string,
 ): Promise<void> {
   const response = await fetch(`${BASE_API_URL}/library/favorites/${mediaId}`, {
     method: "DELETE",
@@ -154,7 +163,7 @@ export async function addToLibrary(
   token: string,
   mediaId: string,
   mediaType: string,
-  comment?: string
+  comment?: string,
 ): Promise<void> {
   const response = await fetch(`${BASE_API_URL}/library`, {
     method: "POST",
@@ -162,10 +171,10 @@ export async function addToLibrary(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       mediaId: mediaId,
       mediaType: mediaType,
-      comment: comment || undefined
+      comment: comment || undefined,
     }),
   });
 
@@ -173,4 +182,41 @@ export async function addToLibrary(
     const errorData = await response.text();
     throw new Error(errorData || "Failed to add to library");
   }
+}
+
+export async function searchMedia(
+  query: string,
+  limit: number = 10,
+): Promise<PaginatedResponse<Media>> {
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+  });
+  const url = `${BASE_API_URL}/search?${params}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Search failed");
+  }
+  return response.json();
+}
+
+export async function fetchUserProfile(token: string): Promise<UserResponse> {
+  const response = await fetch(`${BASE_API_URL}/user`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(errorData || "Failed to fetch user profile");
+  }
+  return response.json();
 }

@@ -181,6 +181,7 @@ function LibraryCard({ entry }: { entry: UserLibraryEntry }) {
                 src={entry.imageUrl}
                 alt={entry.mediaTitle}
                 fill
+                sizes="(max-width: 1024px) 100vw, 200px"
                 className="object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-30"
               />
             ) : (
