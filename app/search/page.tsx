@@ -193,7 +193,7 @@ function ResultCard({ item }: { item: Media }) {
 
       <BentoCard
         name={item.title}
-        className="h-full min-h-[14rem]"
+        className="h-full min-h-56"
         background={
           <div className="absolute inset-0 w-full h-full">
             {item.imageUrl ? (
