@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarUserNav } from "@/components/SidebarUserNav";
-import { Home, Library, Search, Settings, User } from "lucide-react";
+import { Home, Library, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -38,7 +38,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         </nav>
         <div className="pt-6 border-t border-white/10 space-y-2">
-          <NavItem icon={<Settings className="w-5 h-5" />} label="Settings" />
           <SidebarUserNav />
         </div>
       </aside>

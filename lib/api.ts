@@ -186,12 +186,20 @@ export async function addToLibrary(
 
 export async function searchMedia(
   query: string,
-  limit: number = 10,
+  type?: string,
+  page: number = 0,
+  limit: number = 9,
 ): Promise<PaginatedResponse<Media>> {
   const params = new URLSearchParams({
     q: query,
+    page: String(page),
     limit: String(limit),
   });
+
+  if (type && type !== "ALL") {
+    params.append("type", type);
+  }
+  
   const url = `${BASE_API_URL}/search?${params}`;
 
   const response = await fetch(url, {

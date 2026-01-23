@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { logout } from "@/app/actions/auth";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface AuthContextValue {
   token: string | null;
@@ -26,10 +33,10 @@ export function AuthProvider({ children, initialToken }: AuthProviderProps) {
         const trimmed = cookie.trim();
         const eqIndex = trimmed.indexOf("=");
         if (eqIndex === -1) continue;
-        
+
         const name = trimmed.substring(0, eqIndex);
         const value = trimmed.substring(eqIndex + 1);
-        
+
         if (name === "AUTH_TOKEN" && value) {
           if (value !== token) {
             setToken(value);
@@ -48,8 +55,8 @@ export function AuthProvider({ children, initialToken }: AuthProviderProps) {
     return () => clearInterval(interval);
   }, [token, initialToken]);
 
-  const logout = useCallback(() => {
-    document.cookie = "AUTH_TOKEN=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+  const logoutUser = useCallback(async () => {
+    await logout();
     setToken(null);
     window.location.href = "/";
   }, []);
@@ -64,7 +71,7 @@ export function AuthProvider({ children, initialToken }: AuthProviderProps) {
       value={{
         token,
         isAuthenticated: !!token,
-        logout,
+        logout: logoutUser,
         refreshAuth,
       }}
     >

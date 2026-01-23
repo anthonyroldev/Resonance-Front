@@ -1,5 +1,6 @@
 "use client";
 
+import { FilterCombobox } from "@/components/FilterCombobox";
 import { AppShell } from "@/components/AppShell";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { AddToLibraryDialog } from "@/components/feed/AddToLibraryDialog";
@@ -8,9 +9,18 @@ import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { addToFavorites, addToLibrary, searchMedia } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { Media } from "@/lib/types";
+import { Media, MediaType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Disc, Heart, Music2, Pause, Play, Plus, Search as SearchIcon, User } from "lucide-react";
@@ -20,19 +30,109 @@ import { useEffect, useRef, useState } from "react";
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [filterType, setFilterType] = useState<MediaType | "ALL">("ALL");
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
+      setPage(0);
     }, 500);
     return () => clearTimeout(timer);
   }, [query]);
 
   const { data: results, isLoading } = useQuery({
-    queryKey: ["search", debouncedQuery],
-    queryFn: () => searchMedia(debouncedQuery),
+    queryKey: ["search", debouncedQuery, filterType, page],
+    queryFn: () => searchMedia(debouncedQuery, filterType, page),
     enabled: debouncedQuery.length > 3,
   });
+
+  const renderPagination = () => {
+    if (!results || results.totalPages <= 1) return null;
+
+    const { totalPages, first, last } = results;
+    const items = [];
+
+    items.push(
+      <PaginationItem key="prev">
+        <PaginationPrevious
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            if (!first) setPage((p) => Math.max(0, p - 1));
+          }}
+          className={cn(first && "pointer-events-none opacity-50")}
+        />
+      </PaginationItem>
+    );
+
+    const createPageItem = (p: number) => (
+      <PaginationItem key={p}>
+        <PaginationLink
+          href="#"
+          isActive={p === page}
+          onClick={(e) => {
+            e.preventDefault();
+            setPage(p);
+          }}
+        >
+          {p + 1}
+        </PaginationLink>
+      </PaginationItem>
+    );
+
+    if (totalPages <= 7) {
+      for (let i = 0; i < totalPages; i++) {
+        items.push(createPageItem(i));
+      }
+    } else {
+      items.push(createPageItem(0));
+
+      if (page > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      const start = Math.max(1, page - 1);
+      const end = Math.min(totalPages - 2, page + 1);
+
+      for (let i = start; i <= end; i++) {
+        items.push(createPageItem(i));
+      }
+
+      if (page < totalPages - 3) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      items.push(createPageItem(totalPages - 1));
+    }
+
+    items.push(
+      <PaginationItem key="next">
+        <PaginationNext
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            if (!last) setPage((p) => Math.min(totalPages - 1, p + 1));
+          }}
+          className={cn(last && "pointer-events-none opacity-50")}
+        />
+      </PaginationItem>
+    );
+
+    return (
+      <Pagination className="mt-8">
+        <PaginationContent>{items}</PaginationContent>
+      </Pagination>
+    );
+  };
 
   return (
     <AppShell>
@@ -42,13 +142,22 @@ export default function SearchPage() {
             <h1 className="text-3xl font-bold text-white">Rechercher</h1>
           </BlurFade>
           <BlurFade delay={0.2}>
-            <div className="relative max-w-md">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher des titres, albums, artistes..."
-                className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary/50"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+            <div className="flex gap-4 items-center">
+              <div className="relative flex-1 max-w-md">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher des titres, albums, artistes..."
+                  className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40 focus-visible:ring-primary/50"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+              <FilterCombobox 
+                value={filterType} 
+                onChange={(val) => {
+                  setFilterType(val);
+                  setPage(0);
+                }} 
               />
             </div>
           </BlurFade>
@@ -71,18 +180,21 @@ export default function SearchPage() {
               </h2>
             </BlurFade>
             {results.content.length > 0 ? (
-              <BentoGrid>
-                {results.content.map((item, index) => (
-                  <BlurFade 
-                    key={item.id} 
-                    delay={0.4 + index * 0.05} 
-                    inView 
-                    className="col-span-3 lg:col-span-1"
-                  >
-                    <ResultCard item={item} />
-                  </BlurFade>
-                ))}
-              </BentoGrid>
+              <>
+                <BentoGrid>
+                  {results.content.map((item, index) => (
+                    <BlurFade 
+                      key={item.id} 
+                      delay={0.4 + index * 0.05} 
+                      inView 
+                      className="col-span-3 lg:col-span-1"
+                    >
+                      <ResultCard item={item} />
+                    </BlurFade>
+                  ))}
+                </BentoGrid>
+                {renderPagination()}
+              </>
             ) : (
               <p className="text-white/50">
                 Aucun résultat trouvé pour &quot;{debouncedQuery}&quot;
