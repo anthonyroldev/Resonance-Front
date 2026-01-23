@@ -61,32 +61,37 @@ export function FeedItem({ item, isActive }: FeedItemProps) {
     libraryMutation.mutate(comment);
   };
 
-  // Stop audio when scrolled away
+  // Handle auto-play/pause based on active state
   useEffect(() => {
-    if (!isActive && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setProgress(0);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isActive) {
+      audio.volume = 0.25;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+            if (error.name !== "AbortError") {
+              console.warn("Auto-playback prevented:", error);
+            }
+        });
+      }
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
     }
   }, [isActive]);
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!item.previewUrl || !audioRef.current) return;
+    const audio = audioRef.current;
+    if (!item.previewUrl || !audio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+      audio.pause();
     } else {
-      audioRef.current.volume = 0.25;
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.error("Playback failed", err);
-          setIsPlaying(false);
-        });
+      audio.volume = 0.25;
+      audio.play().catch((err) => console.error("Playback failed", err));
     }
   };
 
@@ -125,6 +130,8 @@ export function FeedItem({ item, isActive }: FeedItemProps) {
           src={item.previewUrl}
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleEnded}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
         />
       )}
 
