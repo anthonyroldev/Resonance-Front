@@ -192,7 +192,7 @@ function LibraryCard({ entry }: { entry: UserLibraryEntry }) {
   };
 
   return (
-    <MagicCard className="h-full min-h-[240px] cursor-default overflow-hidden border-white/5 rounded-xl" gradientColor="#3b82f620">
+    <MagicCard className="h-full min-h-60 cursor-default overflow-hidden border-white/5 rounded-xl" gradientColor="#3b82f620">
       {entry.previewUrl && (
         <audio
           ref={audioRef}
